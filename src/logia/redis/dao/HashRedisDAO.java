@@ -13,6 +13,15 @@ import logia.redis.util.Redis;
 public abstract class HashRedisDAO<T extends HashRedisClass> extends AbstractRedisDAO<HashRedisClass> {
 	
 	/**
+	 * Instantiates a new hash redis dao.
+	 *
+	 * @param redis the redis
+	 */
+	public HashRedisDAO(Redis redis) {
+		super(redis);
+	}
+
+	/**
 	 * Gets the.
 	 *
 	 * @param key the key
@@ -28,16 +37,12 @@ public abstract class HashRedisDAO<T extends HashRedisClass> extends AbstractRed
 	 * @return the hash field
 	 */
 	public String getHashField(T data, String field) {
-		Redis redis = new Redis();
 		String value = null;
 		try {
 			value = redis.getJedis().hget(data.getKey(), field);
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
-		}
-		finally {
-			redis.quitJedis();
 		}
 		return value;
 	}
@@ -49,17 +54,14 @@ public abstract class HashRedisDAO<T extends HashRedisClass> extends AbstractRed
 	 * @return true, if successful
 	 */
 	public boolean set(T data) {
-		Redis redis = new Redis();
 		try {
-			redis.getJedis().hmset(data.getKey(), data.getValue());
+			redis.getTransaction().hmset(data.getKey(), data.getValue());
 			return true;
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 			return false;
-		}
-		finally {
-			redis.quitJedis();
 		}
 	}
 	
@@ -71,13 +73,13 @@ public abstract class HashRedisDAO<T extends HashRedisClass> extends AbstractRed
 	 * @return true, if successful
 	 */
 	public boolean delHashField(T data, String field) {
-		Redis redis = new Redis();
 		try {
-			redis.getJedis().hdel(data.getKey(), field);
+			redis.getTransaction().hdel(data.getKey(), field);
 			return true;
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 			return false;
 		}
 		finally {

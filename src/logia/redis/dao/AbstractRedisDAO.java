@@ -16,6 +16,13 @@ import logia.redis.util.Redis;
  */
 abstract class AbstractRedisDAO<T extends KeyRedisClass> {
 
+	/** The redis. */
+	Redis redis;
+	
+	public AbstractRedisDAO(Redis redis) {
+		this.redis = redis;
+	}
+	
 	/**
 	 * Gets the prefix key.
 	 *
@@ -28,54 +35,54 @@ abstract class AbstractRedisDAO<T extends KeyRedisClass> {
 	 *
 	 * @param key the key
 	 * @param seconds the seconds
+	 * @return true, if successful
 	 */
-	public void expired(String key, int seconds) {
-		Redis redis = new Redis();
+	public boolean expired(String key, int seconds) {
 		try {
-			redis.getJedis().expire(key, seconds);
+			redis.getTransaction().expire(key, seconds);
+			return true;
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 		}
-		finally {
-			redis.quitJedis();
-		}
+		return false;
 	}
 
 	/**
 	 * Persist.
 	 *
 	 * @param key the key
+	 * @return true, if successful
 	 */
-	public void persist(String key) {
-		Redis redis = new Redis();
+	public boolean persist(String key) {
 		try {
-			redis.getJedis().persist(key);
+			redis.getTransaction().persist(key);
+			return true;
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 		}
-		finally {
-			redis.quitJedis();
-		}
+		return false;
 	}
 
 	/**
 	 * Del.
 	 *
 	 * @param key the key
+	 * @return true, if successful
 	 */
-	public void del(String key) {
-		Redis redis = new Redis();
+	public boolean del(String key) {
 		try {
-			redis.getJedis().del(key);
+			redis.getTransaction().del(key);
+			return true;
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 		}
-		finally {
-			redis.quitJedis();
-		}
+		return false;
 	}
 
 	/**
@@ -85,16 +92,12 @@ abstract class AbstractRedisDAO<T extends KeyRedisClass> {
 	 * @return the keys
 	 */
 	public Set<String> getKeys(String pattern) {
-		Redis redis = new Redis();
 		Set<String> keys = new HashSet<String>();
 		try {
 			keys = redis.getJedis().keys(pattern);
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
-		}
-		finally {
-			redis.quitJedis();
 		}
 		return keys;
 	}

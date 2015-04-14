@@ -14,6 +14,15 @@ import logia.redis.util.Redis;
 public abstract class StringRedisDAO<T extends StringRedisClass> extends AbstractRedisDAO<StringRedisClass> {
 	
 	/**
+	 * Instantiates a new string redis dao.
+	 *
+	 * @param redis the redis
+	 */
+	public StringRedisDAO(Redis redis) {
+		super(redis);
+	}
+
+	/**
 	 * Gets the.
 	 *
 	 * @param key the key
@@ -28,17 +37,14 @@ public abstract class StringRedisDAO<T extends StringRedisClass> extends Abstrac
 	 * @return true, if successful
 	 */
 	public boolean set(T data) {
-		Redis redis = new Redis();
 		try {
 			redis.getJedis().set(data.getKey(), data.getValue());
 			return true;
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 			return false;
-		}
-		finally {
-			redis.quitJedis();
 		}
 	}
 }

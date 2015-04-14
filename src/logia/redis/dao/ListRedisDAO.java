@@ -13,6 +13,15 @@ import logia.redis.util.Redis;
 public abstract class ListRedisDAO<T extends ListRedisClass> extends AbstractRedisDAO<ListRedisClass> {
 	
 	/**
+	 * Instantiates a new list redis dao.
+	 *
+	 * @param redis the redis
+	 */
+	public ListRedisDAO(Redis redis) {
+		super(redis);
+	}
+
+	/**
 	 * Gets the.
 	 *
 	 * @param key the key
@@ -32,17 +41,14 @@ public abstract class ListRedisDAO<T extends ListRedisClass> extends AbstractRed
 	 * @return true, if successful
 	 */
 	public boolean set(T data, String element) {
-		Redis redis = new Redis();
 		try {
-			redis.getJedis().lpush(data.getKey(), element);
+			redis.getTransaction().lpush(data.getKey(), element);
 			return true;			
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 			return false;
-		}
-		finally {
-			redis.quitJedis();
 		}
 	}
 	
@@ -60,11 +66,12 @@ public abstract class ListRedisDAO<T extends ListRedisClass> extends AbstractRed
 	public boolean delListElement(T data, long count, String element) {
 		Redis redis = new Redis();
 		try {
-			redis.getJedis().lrem(data.getKey(), count, element);
+			redis.getTransaction().lrem(data.getKey(), count, element);
 			return true;
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 			return false;
 		}
 		finally {

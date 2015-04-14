@@ -15,6 +15,15 @@ import logia.redis.util.Redis;
 public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends AbstractRedisDAO<SortedSetRedisClass> {
 	
 	/**
+	 * Instantiates a new sorted set redis dao.
+	 *
+	 * @param redis the redis
+	 */
+	public SortedSetRedisDAO(Redis redis) {
+		super(redis);
+	}
+
+	/**
 	 * Gets the by score.
 	 *
 	 * @param key the key
@@ -42,16 +51,12 @@ public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends A
 	 * @return the sort set member score
 	 */
 	public Double getSortSetMemberScore(T data, String member) {
-		Redis redis = new Redis();
 		Double value = null;
 		try {
 			value = redis.getJedis().zscore(data.getKey(), member);
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
-		}
-		finally {
-			redis.quitJedis();
 		}
 		return value;
 	}
@@ -65,17 +70,14 @@ public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends A
 	 * @return true, if successful
 	 */
 	public boolean set(T data, double score, String member) {
-		Redis redis = new Redis();
 		try {
 			redis.getJedis().zadd(data.getKey(), score, member);
 			return true;
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 			return false;
-		}
-		finally {
-			redis.quitJedis();
 		}
 	}
 	
@@ -87,17 +89,14 @@ public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends A
 	 * @return true, if successful
 	 */
 	public boolean set(T data, Map<String, Double> scoremembers) {
-		Redis redis = new Redis();
 		try {
 			redis.getJedis().zadd(data.getKey(), scoremembers);
 			return true;
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 			return false;
-		}
-		finally {
-			redis.quitJedis();
 		}
 	}
 	
@@ -109,17 +108,14 @@ public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends A
 	 * @return true, if successful
 	 */
 	public boolean delSortSetMember(T data, String members) {
-		Redis redis = new Redis();
 		try {
 			redis.getJedis().zrem(data.getKey(), members);
 			return true;
 		}
 		catch (Exception e) {
 			System.err.println(e.getMessage());
+			redis.discardTransaction();
 			return false;
-		}
-		finally {
-			redis.quitJedis();
 		}
 	}
 }
