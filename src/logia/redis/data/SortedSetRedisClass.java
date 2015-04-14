@@ -1,5 +1,7 @@
 package logia.redis.data;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import redis.clients.jedis.Tuple;
@@ -30,5 +32,18 @@ public class SortedSetRedisClass extends KeyRedisClass {
 	 */
 	public void setValue(Set<Tuple> value) {
 		this.value = value;
+	}
+	
+	/**
+	 * Gets the values as map.
+	 *
+	 * @return the values as map
+	 */
+	public Map<String, Double> getValuesAsMap() {
+		Map<String, Double> mapValues = new HashMap<String, Double>();
+		for (Tuple tuple : value) {
+			mapValues.put(tuple.getElement(), tuple.getScore());
+		}
+		return mapValues;
 	}
 }

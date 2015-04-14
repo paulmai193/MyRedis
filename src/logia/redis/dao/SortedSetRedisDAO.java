@@ -1,5 +1,7 @@
 package logia.redis.dao;
 
+import java.util.Map;
+
 import logia.redis.data.SortedSetRedisClass;
 import logia.redis.util.Redis;
 
@@ -66,6 +68,28 @@ public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends A
 		Redis redis = new Redis();
 		try {
 			redis.getJedis().zadd(data.getKey(), score, member);
+			return true;
+		}
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		finally {
+			redis.quitJedis();
+		}
+	}
+	
+	/**
+	 * Sets the.
+	 *
+	 * @param data the data
+	 * @param scoremembers the scoremembers
+	 * @return true, if successful
+	 */
+	public boolean set(T data, Map<String, Double> scoremembers) {
+		Redis redis = new Redis();
+		try {
+			redis.getJedis().zadd(data.getKey(), scoremembers);
 			return true;
 		}
 		catch (Exception e) {
