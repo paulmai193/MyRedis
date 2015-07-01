@@ -5,8 +5,7 @@ import java.io.Serializable;
 import logia.redis.data.PojoRedisClass;
 import logia.redis.util.Redis;
 
-import org.apache.commons.lang.SerializationUtils;
-
+import org.apache.commons.lang3.SerializationUtils;
 
 /**
  * The Class PojoRedisDAO.
@@ -17,7 +16,7 @@ import org.apache.commons.lang.SerializationUtils;
  * @author Paul Mai
  */
 public abstract class PojoRedisDAO<V, T extends PojoRedisClass<V>> extends AbstractRedisDAO<PojoRedisClass<V>> {
-	
+
 	/**
 	 * Instantiates a new pojo redis dao.
 	 *
@@ -33,7 +32,7 @@ public abstract class PojoRedisDAO<V, T extends PojoRedisClass<V>> extends Abstr
 	 * @param key the key
 	 * @return the t
 	 */
-	public abstract T get(String key);	
+	public abstract T get(String key);
 
 	/**
 	 * Sets the.
@@ -42,7 +41,7 @@ public abstract class PojoRedisDAO<V, T extends PojoRedisClass<V>> extends Abstr
 	 * @return true, if successful
 	 */
 	public abstract boolean set(T data);
-	
+
 	/**
 	 * Gets the.
 	 *
@@ -54,7 +53,8 @@ public abstract class PojoRedisDAO<V, T extends PojoRedisClass<V>> extends Abstr
 			if (key != null && key.trim().length() > 0) {
 				return this.redis.getJedis().get(key.getBytes());
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
 		return null;
