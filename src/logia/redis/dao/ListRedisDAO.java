@@ -11,15 +11,6 @@ import logia.redis.util.Redis;
  * @author Paul Mai
  */
 public abstract class ListRedisDAO<T extends ListRedisClass> extends AbstractRedisDAO<ListRedisClass> {
-	
-	/**
-	 * Instantiates a new list redis dao.
-	 *
-	 * @param redis the redis
-	 */
-	public ListRedisDAO(Redis redis) {
-		super(redis);
-	}
 
 	/**
 	 * Gets the.
@@ -29,7 +20,7 @@ public abstract class ListRedisDAO<T extends ListRedisClass> extends AbstractRed
 	 * @param end the end index
 	 * @return the t
 	 */
-	public abstract T get(String key, long start, long end);	
+	public abstract T get(String key, long start, long end);
 
 	/**
 	 * Sets the.
@@ -37,41 +28,43 @@ public abstract class ListRedisDAO<T extends ListRedisClass> extends AbstractRed
 	 * @param data the data
 	 * @param index the index
 	 * @param element the element
-	 * @param strings 
+	 * @param strings
 	 * @return true, if successful
 	 */
 	public boolean set(T data, String element) {
+		Redis redis = new Redis();
 		try {
-			redis.getTransaction().lpush(data.getKey(), element);
-			return true;			
+			redis.getJedis().lpush(data.getKey(), element);
+			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
 			return false;
 		}
+		finally {
+			redis.quitJedis();
+		}
 	}
-	
+
 	/**
 	 * Del list element.
 	 *
 	 * @param data the data
 	 * @param count the count.<br>
-	 * * count > 0: Remove elements equal to value moving from head to tail;<br>
-	 * * count < 0: Remove elements equal to value moving from tail to head;<br>
-	 * * count = 0: Remove all elements equal to value.
+	 *        * count > 0: Remove elements equal to value moving from head to tail;<br>
+	 *        * count < 0: Remove elements equal to value moving from tail to head;<br>
+	 *        * count = 0: Remove all elements equal to value.
 	 * @param element the element
 	 * @return true, if successful
 	 */
 	public boolean delListElement(T data, long count, String element) {
 		Redis redis = new Redis();
 		try {
-			redis.getTransaction().lrem(data.getKey(), count, element);
+			redis.getJedis().lrem(data.getKey(), count, element);
 			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
 			return false;
 		}
 		finally {

@@ -14,22 +14,25 @@ public class JedisFactory {
 
 	/** The Constant instance. */
 	private static final JedisFactory instance = new JedisFactory();
-	
+
 	/** The pool. */
-	private static JedisPool pool;
-	
+	private static JedisPool          pool;
+
 	/** The host. */
-	private String host;
-	
+	private String                    host;
+
 	/** The port. */
-	private int port;
-	
+	private int                       port;
+
 	/** The max connection. */
-	private int maxConnection;
-	
+	private int                       maxConnection;
+
 	/** The selected database index. */
-	private static int dbIndex;
-	
+	private int                       dbIndex;
+
+	/** The time out. */
+	private int                       timeOut;
+
 	/**
 	 * Gets the single instance of JedisFactory.
 	 *
@@ -44,10 +47,10 @@ public class JedisFactory {
 	 *
 	 * @return the db index
 	 */
-	public static int getDbIndex() {
+	public int getDbIndex() {
 		return dbIndex;
 	}
-	
+
 	/**
 	 * Checks if is connected.
 	 *
@@ -56,7 +59,8 @@ public class JedisFactory {
 	public boolean isConnected() {
 		if (pool == null) {
 			return false;
-		} else {
+		}
+		else {
 			return true;
 		}
 	}
@@ -67,13 +71,16 @@ public class JedisFactory {
 	 * @param host the host
 	 * @param port the port
 	 * @param maxConnection the max connection
+	 * @param index the DB index
+	 * @param timeout the timeout
 	 */
-	public void connect(String host, int port, int maxConnection, int index) {
+	public void connect(String host, int port, int maxConnection, int index, int timeout) {
 		this.host = host;
 		this.port = port;
 		this.maxConnection = maxConnection;
-		dbIndex = index;
-		
+		this.dbIndex = index;
+		this.timeOut = timeout;
+
 		// Create and set a JedisPoolConfig
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
 
@@ -107,10 +114,9 @@ public class JedisFactory {
 		poolConfig.setTimeBetweenEvictionRunsMillis(60000);
 
 		// Create the jedisPool
-		pool = new JedisPool(poolConfig, this.host, this.port);
+		pool = new JedisPool(poolConfig, host, port, timeout, null, index, null);
 
-		System.out.println("Jedis pool connected on host: " + this.host + ", port: "
-				+ this.port);
+		System.out.println("Jedis pool connected on host: " + this.host + ", port: " + this.port);
 	}
 
 	/**
@@ -129,7 +135,7 @@ public class JedisFactory {
 	 */
 	public Jedis getResource() {
 		if (!isConnected()) {
-			connect(host, port, maxConnection, dbIndex);
+			connect(host, port, maxConnection, dbIndex, timeOut);
 		}
 		return pool.getResource();
 	}

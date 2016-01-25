@@ -18,15 +18,6 @@ import org.apache.commons.lang3.SerializationUtils;
 public abstract class PojoRedisDAO<V, T extends PojoRedisClass<V>> extends AbstractRedisDAO<PojoRedisClass<V>> {
 
 	/**
-	 * Instantiates a new pojo redis dao.
-	 *
-	 * @param redis the redis
-	 */
-	public PojoRedisDAO(Redis redis) {
-		super(redis);
-	}
-
-	/**
 	 * Gets the.
 	 *
 	 * @param key the key
@@ -49,15 +40,20 @@ public abstract class PojoRedisDAO<V, T extends PojoRedisClass<V>> extends Abstr
 	 * @return the byte[]
 	 */
 	private synchronized byte[] getByteArray(String key) {
+		Redis redis = new Redis();
+		byte[] arr = null;
 		try {
 			if (key != null && key.trim().length() > 0) {
-				return this.redis.getJedis().get(key.getBytes());
+				arr = redis.getJedis().get(key.getBytes());
 			}
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
+			this.LOGGER.error(e.getMessage(), e);
 		}
-		return null;
+		finally {
+			redis.quitJedis();
+		}
+		return arr;
 	}
 
 	/**
@@ -72,13 +68,7 @@ public abstract class PojoRedisDAO<V, T extends PojoRedisClass<V>> extends Abstr
 		if (key != null && key.trim().length() > 0) {
 			byte[] data = getByteArray(key);
 			if (data != null) {
-				try {
-					return (V) SerializationUtils.deserialize(data);
-				}
-				catch (Exception e) {
-					System.err.println("Error when Deserialize object with key: " + key);
-					return null;
-				}
+				return (V) SerializationUtils.deserialize(data);
 			}
 		}
 		return null;
@@ -90,12 +80,21 @@ public abstract class PojoRedisDAO<V, T extends PojoRedisClass<V>> extends Abstr
 	 * @param key the key
 	 * @param data the data
 	 * @return true, if successful
-	 * @throws Exception the exception
 	 */
-	private synchronized boolean setByteArray(String key, byte[] data) throws Exception {
+	private synchronized boolean setByteArray(String key, byte[] data) {
 		if (key != null && key.trim().length() > 0 && data != null) {
-			this.redis.getTransaction().set(key.getBytes(), data);
-			return true;
+			Redis redis = new Redis();
+			try {
+				redis.getJedis().set(key.getBytes(), data);
+				return true;
+			}
+			catch (Exception e) {
+				this.LOGGER.error(e.getMessage(), e);
+				return false;
+			}
+			finally {
+				redis.quitJedis();
+			}
 		}
 		else {
 			return false;
@@ -110,7 +109,7 @@ public abstract class PojoRedisDAO<V, T extends PojoRedisClass<V>> extends Abstr
 	 * @return true, if successful
 	 * @throws Exception the exception
 	 */
-	protected synchronized boolean setObject(String key, V object) throws Exception {
+	protected synchronized boolean setObject(String key, V object) {
 		if (key != null && key.trim().length() > 0 && object != null) {
 			byte[] data = SerializationUtils.serialize((Serializable) object);
 			return setByteArray(key, data);

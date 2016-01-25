@@ -13,15 +13,6 @@ import logia.redis.util.Redis;
  * @author Paul Mai
  */
 public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends AbstractRedisDAO<SortedSetRedisClass> {
-	
-	/**
-	 * Instantiates a new sorted set redis dao.
-	 *
-	 * @param redis the redis
-	 */
-	public SortedSetRedisDAO(Redis redis) {
-		super(redis);
-	}
 
 	/**
 	 * Gets the by score.
@@ -32,7 +23,7 @@ public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends A
 	 * @return the by score
 	 */
 	public abstract T getByScore(String key, double minScore, double maxScore);
-	
+
 	/**
 	 * Gets the by index.
 	 *
@@ -51,16 +42,20 @@ public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends A
 	 * @return the sort set member score
 	 */
 	public Double getSortSetMemberScore(T data, String member) {
+		Redis redis = new Redis();
 		Double value = null;
 		try {
 			value = redis.getJedis().zscore(data.getKey(), member);
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
+			this.LOGGER.error(e.getMessage(), e);
+		}
+		finally {
+			redis.quitJedis();
 		}
 		return value;
 	}
-	
+
 	/**
 	 * Sets the.
 	 *
@@ -70,17 +65,20 @@ public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends A
 	 * @return true, if successful
 	 */
 	public boolean set(T data, double score, String member) {
+		Redis redis = new Redis();
 		try {
 			redis.getJedis().zadd(data.getKey(), score, member);
 			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
 			return false;
 		}
+		finally {
+			redis.quitJedis();
+		}
 	}
-	
+
 	/**
 	 * Sets the.
 	 *
@@ -89,17 +87,20 @@ public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends A
 	 * @return true, if successful
 	 */
 	public boolean set(T data, Map<String, Double> scoremembers) {
+		Redis redis = new Redis();
 		try {
 			redis.getJedis().zadd(data.getKey(), scoremembers);
 			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
 			return false;
 		}
+		finally {
+			redis.quitJedis();
+		}
 	}
-	
+
 	/**
 	 * Del sort set member.
 	 *
@@ -108,14 +109,17 @@ public abstract class SortedSetRedisDAO<T extends SortedSetRedisClass> extends A
 	 * @return true, if successful
 	 */
 	public boolean delSortSetMember(T data, String members) {
+		Redis redis = new Redis();
 		try {
 			redis.getJedis().zrem(data.getKey(), members);
 			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
 			return false;
+		}
+		finally {
+			redis.quitJedis();
 		}
 	}
 }

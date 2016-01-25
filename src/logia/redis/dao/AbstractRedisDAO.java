@@ -6,6 +6,8 @@ import java.util.Set;
 import logia.redis.data.KeyRedisClass;
 import logia.redis.util.Redis;
 
+import org.apache.log4j.Logger;
+
 /**
  * The Class AbstractRedisDAO.
  *
@@ -16,13 +18,9 @@ import logia.redis.util.Redis;
  */
 abstract class AbstractRedisDAO<T extends KeyRedisClass> {
 
-	/** The redis. */
-	Redis redis;
-	
-	public AbstractRedisDAO(Redis redis) {
-		this.redis = redis;
-	}
-	
+	/** The logger. */
+	protected final Logger LOGGER = Logger.getLogger(getClass());
+
 	/**
 	 * Gets the prefix key.
 	 *
@@ -38,15 +36,18 @@ abstract class AbstractRedisDAO<T extends KeyRedisClass> {
 	 * @return true, if successful
 	 */
 	public boolean expired(String key, int seconds) {
+		Redis redis = new Redis();
 		try {
-			redis.getTransaction().expire(key, seconds);
+			redis.getJedis().expire(key, seconds);
 			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
+			return false;
 		}
-		return false;
+		finally {
+			redis.quitJedis();
+		}
 	}
 
 	/**
@@ -56,15 +57,18 @@ abstract class AbstractRedisDAO<T extends KeyRedisClass> {
 	 * @return true, if successful
 	 */
 	public boolean persist(String key) {
+		Redis redis = new Redis();
 		try {
-			redis.getTransaction().persist(key);
+			redis.getJedis().persist(key);
 			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
+			return false;
 		}
-		return false;
+		finally {
+			redis.quitJedis();
+		}
 	}
 
 	/**
@@ -74,15 +78,18 @@ abstract class AbstractRedisDAO<T extends KeyRedisClass> {
 	 * @return true, if successful
 	 */
 	public boolean del(String key) {
+		Redis redis = new Redis();
 		try {
-			redis.getTransaction().del(key);
+			redis.getJedis().del(key);
 			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
+			return false;
 		}
-		return false;
+		finally {
+			redis.quitJedis();
+		}
 	}
 
 	/**
@@ -92,12 +99,16 @@ abstract class AbstractRedisDAO<T extends KeyRedisClass> {
 	 * @return the keys
 	 */
 	public Set<String> getKeys(String pattern) {
+		Redis redis = new Redis();
 		Set<String> keys = new HashSet<String>();
 		try {
 			keys = redis.getJedis().keys(pattern);
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
+			this.LOGGER.error(e.getMessage(), e);
+		}
+		finally {
+			redis.quitJedis();
 		}
 		return keys;
 	}

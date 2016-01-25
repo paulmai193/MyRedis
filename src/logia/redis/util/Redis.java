@@ -1,7 +1,6 @@
 package logia.redis.util;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Transaction;
 
 /**
  * The Class Redis.
@@ -12,12 +11,12 @@ public class Redis {
 
 	/** The jedis factory. */
 	private JedisFactory jedisFactory = JedisFactory.getInstance();
-	
+
 	/** The jedis. */
-	private Jedis jedis;
-	
+	private Jedis        jedis;
+
 	/** The transaction. */
-	private Transaction transaction;
+	// private Transaction transaction;
 
 	/**
 	 * Instantiates a new redis.
@@ -31,8 +30,8 @@ public class Redis {
 	 */
 	public void initFromPool() {
 		this.jedis = jedisFactory.getResource();
-		this.jedis.getClient().setConnectionTimeout(60);
-		this.jedis.select(JedisFactory.getDbIndex());
+		// this.jedis.getClient().setConnectionTimeout(60);
+		// this.jedis.select(JedisFactory.getDbIndex());
 	}
 
 	/**
@@ -51,34 +50,28 @@ public class Redis {
 		this.jedis.close();
 		this.jedis = null;
 	}
-	
+
 	/**
 	 * Begin transaction.
 	 */
-	public void beginTransaction() {
-		this.transaction = this.jedis.multi();
-	}
-	
-	/**
+	/*
+	 * public void beginTransaction() { this.transaction = this.jedis.multi(); }
+	 *//**
 	 * Gets the transaction.
 	 *
 	 * @return the transaction
 	 */
-	public Transaction getTransaction() {
-		return transaction;
-	}
-	
-	/**
+	/*
+	 * public Transaction getTransaction() { return transaction; }
+	 *//**
 	 * Execute transaction.
 	 */
-	public void execTransaction() {
-		this.transaction.exec();
-	}
-	
-	/**
+	/*
+	 * public void execTransaction() { this.transaction.exec(); }
+	 *//**
 	 * Discard transaction.
 	 */
-	public void discardTransaction() {
-		this.transaction.discard();
-	}
+	/*
+	 * public void discardTransaction() { this.transaction.discard(); }
+	 */
 }

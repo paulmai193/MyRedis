@@ -11,15 +11,6 @@ import logia.redis.util.Redis;
  * @author Paul Mai
  */
 public abstract class SetRedisDAO<T extends SetRedisClass> extends AbstractRedisDAO<SetRedisClass> {
-	
-	/**
-	 * Instantiates a new sets the redis dao.
-	 *
-	 * @param redis the redis
-	 */
-	public SetRedisDAO(Redis redis) {
-		super(redis);
-	}
 
 	/**
 	 * Gets the.
@@ -27,7 +18,7 @@ public abstract class SetRedisDAO<T extends SetRedisClass> extends AbstractRedis
 	 * @param key the key
 	 * @return the t
 	 */
-	public abstract T get(String key);	
+	public abstract T get(String key);
 
 	/**
 	 * Sets the.
@@ -37,14 +28,17 @@ public abstract class SetRedisDAO<T extends SetRedisClass> extends AbstractRedis
 	 * @return true, if successful
 	 */
 	public boolean set(T data, String member) {
+		Redis redis = new Redis();
 		try {
-			redis.getTransaction().sadd(data.getKey(), member);
+			redis.getJedis().sadd(data.getKey(), member);
 			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
 			return false;
+		}
+		finally {
+			redis.quitJedis();
 		}
 	}
 }

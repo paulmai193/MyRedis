@@ -11,15 +11,6 @@ import logia.redis.util.Redis;
  * @author Paul Mai
  */
 public abstract class HashRedisDAO<T extends HashRedisClass> extends AbstractRedisDAO<HashRedisClass> {
-	
-	/**
-	 * Instantiates a new hash redis dao.
-	 *
-	 * @param redis the redis
-	 */
-	public HashRedisDAO(Redis redis) {
-		super(redis);
-	}
 
 	/**
 	 * Gets the.
@@ -27,7 +18,7 @@ public abstract class HashRedisDAO<T extends HashRedisClass> extends AbstractRed
 	 * @param key the key
 	 * @return the t
 	 */
-	public abstract T get(String key);	
+	public abstract T get(String key);
 
 	/**
 	 * Gets the hash field.
@@ -37,16 +28,20 @@ public abstract class HashRedisDAO<T extends HashRedisClass> extends AbstractRed
 	 * @return the hash field
 	 */
 	public String getHashField(T data, String field) {
+		Redis redis = new Redis();
 		String value = null;
 		try {
 			value = redis.getJedis().hget(data.getKey(), field);
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
+			this.LOGGER.error(e.getMessage(), e);
+		}
+		finally {
+			redis.quitJedis();
 		}
 		return value;
 	}
-	
+
 	/**
 	 * Sets the.
 	 *
@@ -54,17 +49,17 @@ public abstract class HashRedisDAO<T extends HashRedisClass> extends AbstractRed
 	 * @return true, if successful
 	 */
 	public boolean set(T data) {
+		Redis redis = new Redis();
 		try {
-			redis.getTransaction().hmset(data.getKey(), data.getValue());
+			redis.getJedis().hmset(data.getKey(), data.getValue());
 			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Del hash field.
 	 *
@@ -73,13 +68,13 @@ public abstract class HashRedisDAO<T extends HashRedisClass> extends AbstractRed
 	 * @return true, if successful
 	 */
 	public boolean delHashField(T data, String field) {
+		Redis redis = new Redis();
 		try {
-			redis.getTransaction().hdel(data.getKey(), field);
+			redis.getJedis().hdel(data.getKey(), field);
 			return true;
 		}
 		catch (Exception e) {
-			System.err.println(e.getMessage());
-			redis.discardTransaction();
+			this.LOGGER.error(e.getMessage(), e);
 			return false;
 		}
 		finally {
